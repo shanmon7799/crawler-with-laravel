@@ -16,4 +16,4 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     return view('welcome');
 });
-Route::get('/test-screenshot', 'App\Http\Controllers\WebCrawlerController@screenshot');
+Route::get('/crawler', 'App\Http\Controllers\WebCrawlerController@index');
