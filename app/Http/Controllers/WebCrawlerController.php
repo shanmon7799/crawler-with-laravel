@@ -9,18 +9,17 @@ use Symfony\Component\DomCrawler\Crawler;
 
 class WebCrawlerController extends Controller
 {
-    public function index(Request $request)
+    public function index(Request $request, Client $client)
     {
         $url = $request->url ?? 'https://blog.techbridge.cc/'; // input URL
         $this->screenshot($url);
-        $client = new Client();
         $crawler = $client->request('GET', $url);
         $baseUri = $crawler->getUri();
 
         // crawl title
         $title = $this->crawlTitle($crawler);
         // crawl posts and links
-        $posts = $this->crawlPosts($crawler, $baseUri);
+        $posts = $this->crawlPosts($crawler);
 
 
         $data = [
@@ -32,13 +31,33 @@ class WebCrawlerController extends Controller
         return view('crawler', $data);
     }
 
-    public function screenshot($url) : void
+    public function show(Request $request, Client $client)
+    {
+        $uri = $request->uri;
+        $baseUri = $request->baseUri;
+        $encodedUri = urlencode($uri); // encode chinese
+        $url = $baseUri . $encodedUri;
+        $this->screenshot($url, '/storage/detail-screenshot.png');
+        $crawler = $client->request('GET', $url);
+
+        $title = $this->crawlTitle($crawler);
+        $content = $this->crawlContent($crawler);
+        $data = [
+            'title' => $title,
+            'url' => $url,
+            'content' => $content,
+        ];
+
+        return view('detail', $data);
+    }
+
+    public function screenshot($url, $filename = '/storage/screenshot.png') : void
     {
         Browsershot::url($url)
             ->setOption('landscape', true)
             ->windowSize(1600, 1024)
             ->waitUntilNetworkIdle()
-            ->save(public_path() . '/storage/screenshot.png');
+            ->save(public_path() . $filename);
     }
 
     public function crawlTitle($crawler) : string
@@ -46,7 +65,7 @@ class WebCrawlerController extends Controller
         return $crawler->filter('title')->text();
     }
 
-    public function crawlPosts($crawler, $baseUri) : array
+    public function crawlPosts($crawler) : array
     {
         $postPreviews = $crawler->filter('.post-preview');
         $result = [];
@@ -60,11 +79,16 @@ class WebCrawlerController extends Controller
             $description = $crawler->filter('p, post-meta')->text();
             $result[] = [
                 'post' => $post,
-                'link' => $baseUri . $link,
+                'linkUri' => $link,
                 'description' => $description
             ];
         }
 
         return $result;
+    }
+
+    public function crawlContent($crawler) : string
+    {
+        return $crawler->filter('article')->text();
     }
 }

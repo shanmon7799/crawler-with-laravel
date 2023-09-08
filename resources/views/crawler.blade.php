@@ -21,10 +21,15 @@
         <div class="col-lg-8 col-md-10 mx-auto">
             @foreach ($posts as $post)
                 <div class="post-preview">
-                    <a href="{{ $post['link'] }}">
+                    <a href="{{ $baseUri . $post['linkUri'] }}">
                         <h3 class="post-title">
                             {{ $post['post'] }}
                         </h3>
+                    </a>
+                    <a href="{{ url('/detail') . '?baseUri=' . $baseUri . '&uri=' . $post['linkUri'] }}">
+                        <h4 class="post-detail">
+                            Detail
+                        </h4>
                     </a>
                     <p class="post-description">
                         {{$post['description']}}

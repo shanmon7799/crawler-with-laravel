@@ -17,3 +17,4 @@ Route::get('/', function () {
     return view('welcome');
 });
 Route::get('/crawler', 'App\Http\Controllers\WebCrawlerController@index');
+Route::get('/detail', 'App\Http\Controllers\WebCrawlerController@show');
